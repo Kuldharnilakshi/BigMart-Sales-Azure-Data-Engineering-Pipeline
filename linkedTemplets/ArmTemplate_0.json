@@ -1,0 +1,585 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "ADFnilakshi"
+        },
+        "Sink Linked Service_accountKey": {
+            "type": "secureString",
+            "metadata": "Secure string for 'accountKey' of 'Sink Linked Service'"
+        },
+        "Ls_SQL_password": {
+            "type": "secureString",
+            "metadata": "Secure string for 'password' of 'Ls_SQL'"
+        },
+        "Sink Linked Service_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://nilakshis.dfs.core.windows.net/"
+        },
+        "Ls_SQL_properties_typeProperties_server": {
+            "type": "string",
+            "defaultValue": "nilakshi-retail-sql.database.windows.net"
+        },
+        "Ls_SQL_properties_typeProperties_database": {
+            "type": "string",
+            "defaultValue": "RetailDBNil"
+        },
+        "Ls_SQL_properties_typeProperties_userName": {
+            "type": "string",
+            "defaultValue": "sqladmin"
+        },
+        "HttpServer1_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/Sink Linked Service')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Added sink linked service",
+                "annotations": [],
+                "type": "AzureBlobFS",
+                "typeProperties": {
+                    "url": "[parameters('Sink Linked Service_properties_typeProperties_url')]",
+                    "accountKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('Sink Linked Service_accountKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Ls_SQL')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "added sql linked services",
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "server": "[parameters('Ls_SQL_properties_typeProperties_server')]",
+                    "database": "[parameters('Ls_SQL_properties_typeProperties_database')]",
+                    "encrypt": "optional",
+                    "trustServerCertificate": false,
+                    "authenticationType": "SQL",
+                    "userName": "[parameters('Ls_SQL_properties_typeProperties_userName')]",
+                    "password": {
+                        "type": "SecureString",
+                        "value": "[parameters('Ls_SQL_password')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/HttpServer1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "HttpServer",
+                "typeProperties": {
+                    "url": "[parameters('HttpServer1_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DS_GitHub_BigMart')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "HttpServer1",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "HttpServerLocation",
+                        "relativeUrl": "anshlambagit/AnshLambaYoutube/refs/heads/main/Azure_Data_Engineer_Fundamentals/BigMartSales.csv"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/HttpServer1')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DS_Raw_BigMart')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Sink Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "BigMartSales.csv",
+                        "fileSystem": "rawsalesdata"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Item_Identifier",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_Weight",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_Fat_Content",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_Visibility",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_MRP",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Outlet_Identifier",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Outlet_Establishment_Year",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Outlet_Size",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Outlet_Location_Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Outlet_Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Item_Outlet_Sales",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Sink Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DS_Processed_BigMart')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Sink Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "part-00000-aafc5652-b735-464f-a56f-9f2f9bf858c2-c000.csv",
+                        "folderPath": "Bigmart",
+                        "fileSystem": "processedsalesdata"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Item_Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "TotalSales",
+                        "type": "String"
+                    },
+                    {
+                        "name": "AvgMRP",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ProductCount",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Sink Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DS_SQL_BigMart')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Ls_SQL",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "BigMartSummary"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Ls_SQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DF_BigMartSales')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "DS_Raw_BigMart",
+                                "type": "DatasetReference"
+                            },
+                            "name": "source1"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "DS_Processed_BigMart",
+                                "type": "DatasetReference"
+                            },
+                            "name": "sink1"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "filter1"
+                        },
+                        {
+                            "name": "derivedColumn1"
+                        },
+                        {
+                            "name": "aggregate1"
+                        }
+                    ],
+                    "scriptLines": [
+                        "source(output(",
+                        "          Item_Identifier as string,",
+                        "          Item_Weight as string,",
+                        "          Item_Fat_Content as string,",
+                        "          Item_Visibility as string,",
+                        "          Item_Type as string,",
+                        "          Item_MRP as string,",
+                        "          Outlet_Identifier as string,",
+                        "          Outlet_Establishment_Year as string,",
+                        "          Outlet_Size as string,",
+                        "          Outlet_Location_Type as string,",
+                        "          Outlet_Type as string,",
+                        "          Item_Outlet_Sales as string",
+                        "     ),",
+                        "     allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     ignoreNoFilesFound: false) ~> source1",
+                        "source1 filter(toDecimal(Item_MRP) > 0 && toDecimal(Item_Outlet_Sales) > 0) ~> filter1",
+                        "filter1 derive(Outlet_Age = 2026 - toInteger(Outlet_Establishment_Year)) ~> derivedColumn1",
+                        "derivedColumn1 aggregate(groupBy(Item_Type),",
+                        "     TotalSales = sum(toDecimal(Item_Outlet_Sales)),",
+                        "          AvgMRP = avg(toDecimal(Item_MRP)),",
+                        "          ProductCount = count()) ~> aggregate1",
+                        "aggregate1 sink(allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     input(",
+                        "          Item_Type as string,",
+                        "          TotalSales as string,",
+                        "          AvgMRP as string,",
+                        "          ProductCount as string",
+                        "     ),",
+                        "     umask: 0022,",
+                        "     preCommands: [],",
+                        "     postCommands: [],",
+                        "     skipDuplicateMapInputs: true,",
+                        "     skipDuplicateMapOutputs: true) ~> sink1"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/DS_Raw_BigMart')]",
+                "[concat(variables('factoryId'), '/datasets/DS_Processed_BigMart')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/End_To_End_Pipeline_of_Bigmart_Sales')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Copy_GitHub_To_Raw",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "HttpReadSettings",
+                                    "requestMethod": "GET"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "typeConversion": true,
+                                "typeConversionSettings": {
+                                    "allowDataTruncation": true,
+                                    "treatBooleanAsNumber": false
+                                }
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "DS_GitHub_BigMart",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "DS_Raw_BigMart",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "DF_Transform_BigMart",
+                        "type": "ExecuteDataFlow",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy_GitHub_To_Raw",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataflow": {
+                                "referenceName": "DF_BigMartSales",
+                                "type": "DataFlowReference",
+                                "parameters": {},
+                                "datasetParameters": {
+                                    "source1": {},
+                                    "sink1": {}
+                                },
+                                "linkedServiceParameters": {}
+                            },
+                            "staging": {},
+                            "compute": {
+                                "coreCount": 8,
+                                "computeType": "General"
+                            },
+                            "traceLevel": "Fine"
+                        }
+                    },
+                    {
+                        "name": "Copy_Processed_To_SQL",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "DF_Transform_BigMart",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "AzureSqlSink",
+                                "writeBehavior": "insert",
+                                "sqlWriterUseTableLock": false,
+                                "disableMetricsCollection": false
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "Item_Type",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Item_Type",
+                                            "type": "String",
+                                            "physicalType": "varchar"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "TotalSales",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "TotalSales",
+                                            "type": "Decimal",
+                                            "physicalType": "decimal",
+                                            "scale": 2,
+                                            "precision": 18
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "AvgMRP",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "AvgMRP",
+                                            "type": "Decimal",
+                                            "physicalType": "decimal",
+                                            "scale": 2,
+                                            "precision": 18
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ProductCount",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ProductCount",
+                                            "type": "Int32",
+                                            "physicalType": "int"
+                                        }
+                                    }
+                                ],
+                                "typeConversion": true,
+                                "typeConversionSettings": {
+                                    "allowDataTruncation": true,
+                                    "treatBooleanAsNumber": false
+                                }
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "DS_Processed_BigMart",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "DS_SQL_BigMart",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {}
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/DS_GitHub_BigMart')]",
+                "[concat(variables('factoryId'), '/datasets/DS_Raw_BigMart')]",
+                "[concat(variables('factoryId'), '/dataflows/DF_BigMartSales')]",
+                "[concat(variables('factoryId'), '/datasets/DS_Processed_BigMart')]",
+                "[concat(variables('factoryId'), '/datasets/DS_SQL_BigMart')]"
+            ]
+        }
+    ]
+}
