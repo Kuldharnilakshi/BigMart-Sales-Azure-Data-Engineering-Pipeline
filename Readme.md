@@ -44,6 +44,8 @@ Azure SQL Database
      │
      ▼
 BigMartSummary
+
+
 ☁️ Azure Services Used
 1. Azure Data Factory
 
